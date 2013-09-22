@@ -85,6 +85,11 @@ public class MusterCull extends JavaPlugin {
 			getCommand(command).setExecutor(commander);
 		}
     }
+	
+	public float getHardCapCullingPriorityStrategyPenaltyMobPercent()
+	{
+		return this.config.getHardCapCullingPriorityStrategyPenaltyMobPercent();
+	}
      
 	/**
 	 * Called when the plug-in is disabled by Bukkit.
@@ -142,6 +147,10 @@ public class MusterCull extends JavaPlugin {
 		return this.config.hasDamageLimits();
 	}
 	
+	public GlobalCullCullingStrategyType getGlobalCullingStrategy() {
+		return this.config.getHardCapCullingStrategy();
+	}
+	
 	/**
 	 * Returns whether or not we have limits with CullType SPAWN.
 	 * @return Whether or not we have limits with CullType SPAWN.
@@ -192,6 +201,11 @@ public class MusterCull extends JavaPlugin {
 		int hardLimit = getMaxMob();
 		int lessHardLimit = getPlayerMultiplier() * playerCount;
 		int currentLimit = hardLimit - lessHardLimit;
+		
+		if (currentLimit < 0) {
+			currentLimit = 0;
+		}
+		
 		int totalMobs = getMobCount() - playerCount;
 		
 		return totalMobs - currentLimit;

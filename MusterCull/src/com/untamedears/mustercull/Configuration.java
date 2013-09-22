@@ -97,6 +97,16 @@ public class Configuration {
 	private JavaPlugin pluginInstance = null;
 	
 	/**
+	 * Percent that a super-chunk must contain of total server pop in order to qualify for a penalty purge.
+	 */
+	private int hardCapCullingPriorityStrategyPenaltyMobPercent = 100;
+	
+	/**
+	 * Culling strategy for hard-cap culling.  RANDOM or PRIORITY
+	 */
+	private String hardCapCullingStrategy = "RANDOM";
+	
+	/**
 	 * Constructor which stores a reference to the Bukkit JavaPlugin we are using.
 	 * @param plugin A reference to a Bukkit JavaPlugin.
 	 */
@@ -121,6 +131,8 @@ public class Configuration {
 		this.setMaxMob(config.getInt("mob_max_mob"));
 		this.setPlayerMultiplier(config.getInt("mob_player_multiplier"));
         this.setTicksBetweenHardCap(config.getInt("ticks_between_hard_cap"));
+        this.setHardCapCullingStrategy(config.getString("hard_cap_culling_strategy"));
+        this.setHardCapCullingPriorityStrategyPenaltyMobPercent(config.getInt("hard_cap_culling_priority_strategy_penalty_mob_percent"));
 						
 		List<?> list;
 				
@@ -164,6 +176,14 @@ public class Configuration {
 		this.dirty = false;
 	}
 
+	private void setHardCapCullingPriorityStrategyPenaltyMobPercent(int perc) {
+		hardCapCullingPriorityStrategyPenaltyMobPercent = perc;
+	}
+	
+	public float getHardCapCullingPriorityStrategyPenaltyMobPercent() {
+		return hardCapCullingPriorityStrategyPenaltyMobPercent / 100.f ;
+	}
+
 	/**
 	 * Saves configuration values to the supplied plug-in instance.
 	 */
@@ -185,6 +205,8 @@ public class Configuration {
 		config.set("mob_max_mob", this.maxMob);
 		config.set("mob_player_multiplier", this.playerMultiplier);
         config.set("ticks_between_hard_cap", this.ticksBetweenHardCap);
+        config.set("hard_cap_culling_strategy", this.hardCapCullingStrategy);
+        config.set("hard_cap_culling_priority_strategy_penalty_mob_percent", this.hardCapCullingPriorityStrategyPenaltyMobPercent);
 				
 		this.pluginInstance.saveConfig();
 		
@@ -467,6 +489,31 @@ public class Configuration {
      */
     public long getTicksBetweenHardCap(){
         return ticksBetweenHardCap;
+    }
+    
+    /**
+     * Sets the culling strategy.
+     * @param cullingStrategy is either RANDOM or PRIORITY to determine if we should randomize culling or cull items based on what is least likely to be missed vs most likely.
+     */
+    public void setHardCapCullingStrategy(String cullingStrategy) {
+    	
+    	cullingStrategy = cullingStrategy.toUpperCase();
+    	
+    	if (!cullingStrategy.equals("RANDOM") && !cullingStrategy.equals("PRIORITY"))
+    	{
+            pluginInstance.getLogger().warning("hard_cap_culling_strategy not an allowed value (needs RANDOM or PRIORITY - has " + cullingStrategy + ".");
+            return;
+    	}
+        
+    	this.hardCapCullingStrategy = cullingStrategy;
+    	
+		pluginInstance.getLogger().info("MusterCull hard cap culling strategy = " + this.hardCapCullingStrategy + ".");
+		
+		dirty = true;
+    }
+    
+    public GlobalCullCullingStrategyType getHardCapCullingStrategy() {
+    	return GlobalCullCullingStrategyType.fromName(hardCapCullingStrategy);
     }
 
     /**

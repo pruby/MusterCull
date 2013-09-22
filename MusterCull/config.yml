@@ -126,10 +126,40 @@ mob_max_mob: 10000
 mob_player_multiplier: 5
 
 # The number of ticks between invocations of the hardcap laborer for mobs.
-ticks_between_hard_cap: 40
+ticks_between_hard_cap: 300
 
 # Number of entities before the damage laborer cares to run.
 mob_limit: 1
 
 # Percent of total entities a mob must be to be queued for damage.
 mob_limit_percent: 1
+
+# Type of culling logic to use in the case of a hard-cap cull.
+# Options:  
+#   RANDOM - will produce random culling with equal weight to every living entity.
+#   PRIORITY - will produce priority based culling
+#
+# On priority based culling, we keep mobs in descending priority order.
+#     Priority 1 - Named mob.
+#     Priority 2 - Leashed mob.
+#     Priority 3 - High value persistent mobs (horses, villagers).
+#     	Golems specifically not added as they can be auto'ed leading to an unfortunate culling scenario.
+#     Priority 4 - tame wolves, colored sheep, tame cats.
+#     Priority 5 - low value persistent mobs.
+#     Non Priority - non persistent mobs.
+hard_cap_culling_strategy: PRIORITY
+
+# For the hard cap culling using priority culling strategy, what is the percent
+#   of total mob population that a super-chunk (6 chunks) needs to contain in order to 
+#   trigger a penalty purge.  This would require running a purge specifically against this 
+#   chunk in order to get the mob-counts in this chunk back to the average mob-per-chunk
+#   serverwide.
+#
+# Setting this value too high (disabling it in essence) will allow players to cause global cullings by 
+#   by having high priority mobs (named/leash/horses) in large densities in their own chunks without
+#   a problem.  By setting this to a reasonably percent, these player chunks would be first targeted
+#   by a culling in order to bring them down to the average mob-per-chunk value.
+#
+# NOTE:  a value of 100 = 100%, a value of 15 = 15%, etc.
+hard_cap_culling_priority_strategy_penalty_mob_percent: 15
+
