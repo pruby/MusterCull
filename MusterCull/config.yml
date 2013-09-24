@@ -126,6 +126,7 @@ mob_max_mob: 10000
 mob_player_multiplier: 5
 
 # The number of ticks between invocations of the hardcap laborer for mobs.
+# Minimum allowed tick gap is 200.  Values lower than this are ignored.
 ticks_between_hard_cap: 300
 
 # Number of entities before the damage laborer cares to run.
@@ -141,11 +142,10 @@ mob_limit_percent: 1
 #
 # On priority based culling, we keep mobs in descending priority order.
 #     Priority 1 - Named mob.
-#     Priority 2 - Leashed mob.
-#     Priority 3 - High value persistent mobs (horses, villagers).
+#     Priority 2 - High value persistent mobs (horses, villagers).
 #     	Golems specifically not added as they can be auto'ed leading to an unfortunate culling scenario.
-#     Priority 4 - tame wolves, colored sheep, tame cats.
-#     Priority 5 - low value persistent mobs.
+#     Priority 3 - tame wolves, colored sheep, tame cats.
+#     Priority 4 - low value persistent mobs.
 #     Non Priority - non persistent mobs.
 hard_cap_culling_strategy: PRIORITY
 

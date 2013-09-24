@@ -57,6 +57,8 @@ public class MusterCull extends JavaPlugin {
      * Whether hard cap laborer is paused.
      */
     private boolean hardCapPaused = false;
+    
+    private HardCapLaborer hardCapLaborerRef;
 	
 	/**
 	 * Called when the plug-in is enabled by Bukkit.
@@ -71,8 +73,10 @@ public class MusterCull extends JavaPlugin {
 		if (this.damageLaborTask == -1) {
 			getLogger().severe("Failed to start MusterCull DAMAGE laborer.");
 		}
+		
+		hardCapLaborerRef = new HardCapLaborer(this);
 
-        this.hardCapLaborTask = getServer().getScheduler().scheduleSyncRepeatingTask(this, new HardCapLaborer(this), config.getTicksBetweenHardCap(), config.getTicksBetweenHardCap());
+        this.hardCapLaborTask = getServer().getScheduler().scheduleSyncRepeatingTask(this, hardCapLaborerRef, config.getTicksBetweenHardCap(), config.getTicksBetweenHardCap());
 
         if (this.hardCapLaborTask == -1) {
             getLogger().severe("Failed to start MusterCull HARDCAP laborer.");
@@ -90,6 +94,11 @@ public class MusterCull extends JavaPlugin {
 	{
 		return this.config.getHardCapCullingPriorityStrategyPenaltyMobPercent();
 	}
+	
+	public void setHardCapCullingStrategy(String strategy)
+	{
+		config.setHardCapCullingStrategy(strategy);
+	}
      
 	/**
 	 * Called when the plug-in is disabled by Bukkit.
@@ -101,9 +110,14 @@ public class MusterCull extends JavaPlugin {
 
         if (this.hardCapLaborTask != -1) {
             getServer().getScheduler().cancelTask(hardCapLaborTask);
+            hardCapLaborerRef = null;
         }
 
     	this.config.save();
+    }
+    
+    public String getHardCapStatistics() {
+    	return (null == hardCapLaborerRef) ? "" : hardCapLaborerRef.GetStatisticDisplayString();
     }
 
     /**
@@ -212,10 +226,10 @@ public class MusterCull extends JavaPlugin {
 	}
 	
 	/**
-	 * Returns list of all living entities in all worlds.
-	 * @return list of all living entities in all worlds.
+	 * Returns list of all living non player entities in all worlds.
+	 * @return list of all living non player entities in all worlds.
 	 */
-	public List<LivingEntity> getAllMobs() {
+	public List<LivingEntity> getAllLivingNonPlayerMobs() {
 
         List<World> worlds = getServer().getWorlds();
         int mobCount = 0;
@@ -227,7 +241,13 @@ public class MusterCull extends JavaPlugin {
         List<LivingEntity> entities = new ArrayList<LivingEntity>(mobCount);
 
         for (World world : worlds) {
-            entities.addAll(world.getLivingEntities());
+        	List<LivingEntity> mobs = world.getLivingEntities();
+            for (LivingEntity mob : mobs) {
+                if (   (! (mob instanceof Player))
+                    && (! mob.isDead())) {
+                    entities.add(mob);
+                }
+            }
         }
 
         return entities;

@@ -68,12 +68,41 @@ public class Commander implements CommandExecutor {
 		else if (caption.equals("mculltypes")) {
 			return commandTypes(sender, argv);
 		}
+		else if (caption.equals("mcullhardlimitstrategy")) {
+			return commandHardLimitStrategy(sender, argv);
+		}
 		else {
 			return false;
 		}
 	}
 	
-	
+
+	/**
+	 * Command handler which allows changing the culling strategy between priority and random.
+	 * @param sender A reference to a Bukkit CommandSender for this handler.
+	 * @param argv A list of arguments for this handler.
+	 * @return Whether or not this event was handled and should be canceled.
+	 */
+	private boolean commandHardLimitStrategy(CommandSender sender, String[] argv) {
+		
+		if (argv.length < 1) {
+			return false;
+		}
+		
+		if (!(argv[0].toUpperCase().equals("RANDOM") || argv[0].toUpperCase().equals("PRIORITY")))
+		{
+			sender.sendMessage("MusterCull: unknown culling strategy '" + argv[0] + "'.  No changes made.");
+			return true;
+		}
+		else
+		{
+			this.pluginInstance.setHardCapCullingStrategy(argv[0].toUpperCase());
+			sender.sendMessage("MusterCull: Hard Cap Culling strategy changed to '" + argv[0] + "'.");
+		}
+		return true;
+	}
+
+
 	/**
 	 * Command handler which allows pausing/resuming individual culling types
 	 * and resetting the list of entities to damage (if any).
@@ -243,6 +272,12 @@ public class Commander implements CommandExecutor {
 				sender.sendMessage("Player " + status.getEntity().getName() + " surrounded by " + status.getNearbyEntityCount() + " entities.");
 				reported = true;
 			}
+		}
+		
+		if (this.pluginInstance.getHardCapStatistics() != null)
+		{
+			sender.sendMessage(this.pluginInstance.getHardCapStatistics());
+			reported = true;
 		}
 		
 		// Last message

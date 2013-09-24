@@ -524,8 +524,9 @@ public class Configuration {
 
         pluginInstance.getLogger().info("MusterCull will kill something every " + ticksBetween + " ticks.");
 
-        if (ticksBetweenDamage < 25) {
-            pluginInstance.getLogger().warning("ticks_between_hard_cap is < 25, might bug out and kill everything.");
+        if (ticksBetweenDamage < 200) {
+            pluginInstance.getLogger().warning("ticks_between_hard_cap is < 200, ignoring this and setting to 200.");
+            ticksBetweenDamage = 200;
         }
 
         ticksBetweenHardCap = ticksBetween;
