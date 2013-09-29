@@ -440,7 +440,7 @@ public class HardCapLaborer extends Laborer {
 				{
 					public int compare(Entry<EntityType, List<LivingEntity>> o1, Entry<EntityType, List<LivingEntity>> o2)
 					{
-						return Integer.compare(o1.getValue().size(), o2.getValue().size());
+                        return o1.getValue().size() - o2.getValue().size();
 					}
 				}
 		));
