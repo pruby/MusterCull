@@ -508,17 +508,17 @@ public class MusterCull extends JavaPlugin {
 			
 			if (agingEntity.isAdult()) {
 				NotifyDamaged(entity, damage);
-				agingEntity.damage(damage);
+				agingEntity.damage((double)damage);
 			}
 			else {
 				NotifyDamaged(entity, 2 * damage);
-				agingEntity.damage(2 * damage);
+				agingEntity.damage((double)(2 * damage));
 			}
 		}
 		else if (LivingEntity.class.isAssignableFrom(entity.getClass())) {
 			NotifyDamaged(entity, damage);
 			LivingEntity livingEntity = (LivingEntity)entity;
-			livingEntity.damage(damage);
+			livingEntity.damage((double)damage);
 		}
 		else {
 			getLogger().warning("Attempt to damage non-living entity '" + entity.getType().toString() + "' detected.");
