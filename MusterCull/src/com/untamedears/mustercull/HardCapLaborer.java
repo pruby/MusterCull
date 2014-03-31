@@ -103,8 +103,8 @@ public class HardCapLaborer extends Laborer {
 			else if(cullStrat == GlobalCullCullingStrategyType.PRIORITY)
 			{
 				// this.getPluginInstance().getLogger().warning("Hard Cap Laborer - Priority based culling.");
-				toKill = HandleCullingBasedOnChunkConcentration(toKill);
-	            toKill = HandleGlobalCulling(toKill);
+				toKill = HandleCullingBasedOnChunkConcentration(getPluginInstance().getAllLivingNonPlayerMobs(), toKill);
+	            toKill = HandleGlobalCulling(getPluginInstance().getAllLivingNonPlayerMobs(), toKill);
 			}
 			else
 			{
@@ -118,6 +118,7 @@ public class HardCapLaborer extends Laborer {
 			_numberOfTimesExecuted++;
 		}
 		
+		keepHostilesWithinSpawnLimit();
 
 		currentlyRunning = false;
 		return;
@@ -194,15 +195,61 @@ public class HardCapLaborer extends Laborer {
 		}
 	}
 	
+
+	public void keepHostilesWithinSpawnLimit() {
+		for (World world : Bukkit.getServer().getWorlds()) {
+			List<LivingEntity> hostiles = new ArrayList<LivingEntity>();
+			for (LivingEntity mob : world.getLivingEntities()) {
+				if (mob instanceof Monster) {
+					hostiles.add(mob);
+				}
+			}
+			
+			int limit = world.getMonsterSpawnLimit();
+			
+			// Cull in a cycle, most aggressive at full moon, to encourage turnover rather than statis
+			long days = world.getFullTime() / 24000;
+			int phase = (int) (days % 8);
+			double cycleAmplitude = (1 + Math.cos(phase * Math.PI * 0.25)) / 2; // Fluctuate from 1 at full moon to 0 at new moon sinusoidally
+			int aggression = (int) (cycleAmplitude * 0.05 * limit);
+			
+			int toKill = hostiles.size() - (limit - aggression);
+			if (toKill >= 0) {
+				GlobalCullCullingStrategyType cullStrat = this.getPluginInstance().getGlobalCullingStrategy();
+				
+				if (cullStrat == GlobalCullCullingStrategyType.RANDOM)
+				{
+					// this.getPluginInstance().getLogger().warning("Hard Cap Laborer - Random based culling.");
+		            for (LivingEntity mob : hostiles) {
+		                if (! mob.isDead()) {
+		                    toKill--;
+		                    getPluginInstance().damageEntity(mob, 100);
+		                }
+		                if (toKill == 0)
+		                    break;
+		            }
+				}
+				else if(cullStrat == GlobalCullCullingStrategyType.PRIORITY)
+				{
+					// this.getPluginInstance().getLogger().warning("Hard Cap Laborer - Priority based culling.");
+					toKill = HandleCullingBasedOnChunkConcentration(hostiles, toKill);
+		            toKill = HandleGlobalCulling(hostiles, toKill);
+				}
+				else
+				{
+					this.getPluginInstance().getLogger().warning("Hard Cap Laborer - Cannot determine culling strategy, no work to do.");
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Given an integer mob to kill count, it will attempt to find if there are any problem chunks and begin a culling 
 	 * @param mobCountToCull Amount of mobs we would like to kill in total - not the amount of mobs we have to kill just from this chunk based culling.
 	 * @return How many mobs are left of the mobs we would like to kill.
 	 */
-	private int HandleCullingBasedOnChunkConcentration(int mobCountToCull)
-	{
-		List<LivingEntity> mobs = getPluginInstance().getAllLivingNonPlayerMobs();
-		
+	private int HandleCullingBasedOnChunkConcentration(List<LivingEntity> mobs, int mobCountToCull)
+	{	
         HashMap<Point, List<LivingEntity>> chunkEntities = new HashMap<Point, List<LivingEntity>>();
         int totalCullScore = 0;
         
@@ -475,10 +522,8 @@ public class HardCapLaborer extends Laborer {
 	 * @param overHardMobLimit Max number of items to purge.
 	 * @return 
 	 */
-	private int HandleGlobalCulling(int overHardMobLimit)
+	private int HandleGlobalCulling(List<LivingEntity> mobList, int overHardMobLimit)
 	{
-		// Consider every mob in the world except players, and start culling.
-		List<LivingEntity> mobList = getPluginInstance().getAllLivingNonPlayerMobs();
 		
 		return PerformCullingLogic(mobList, mobList.size() * 10, overHardMobLimit);
 	}
