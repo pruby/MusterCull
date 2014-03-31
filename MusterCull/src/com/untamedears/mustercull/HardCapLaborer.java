@@ -1,9 +1,13 @@
 package com.untamedears.mustercull;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.DyeColor;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Monster;
 
 import java.awt.Point;
 import java.util.ArrayList;
@@ -12,6 +16,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -25,7 +30,6 @@ public class HardCapLaborer extends Laborer {
 	private int _numberOfTimesExecutedWithPenaltyPurge = 0;
 	private long _averageTimePerExecutionInMs = 0;
 	private long _executionTimeForLastExecutionInMs = 0;
-	
 	
 	/**
 	 * Constructor which takes a reference to the main plug-in class.
@@ -146,6 +150,50 @@ public class HardCapLaborer extends Laborer {
 		return sb.toString();
 	}
 	
+	public int cullPriority(LivingEntity mob) {
+		// Priority 1 - Named mob.
+		if (null != mob.getCustomName() || mob.isCustomNameVisible()) 
+		{ 
+			return 5; 
+		}
+		
+		// Priority 2/3/4 - Persistent mobs.
+		else if (!mob.getRemoveWhenFarAway())
+		{
+			// Priority 2 - High value persistent mobs (horses, villagers).
+			// Golems specifically not added as they can be auto'ed leading to an unfortunate culling scenario.
+			if (mob.getType() == EntityType.HORSE || mob.getType() == EntityType.VILLAGER)
+			{
+				return 6;
+			}
+			
+			//Priority 3 - tame wolves, colored sheep, tame cats.
+			else if (mob.getType() == EntityType.WOLF && ((org.bukkit.entity.Tameable)mob).isTamed())
+			{
+				return 7;
+			}
+			else if (mob.getType() == EntityType.OCELOT && ((org.bukkit.entity.Tameable)mob).isTamed())
+			{
+				return 7;
+			}
+			else if (mob.getType() == EntityType.SHEEP && ((org.bukkit.material.Colorable)mob).getColor() != DyeColor.WHITE)
+			{
+				return 7;
+			}
+			
+			// Priority 4 - low value persistent mobs.
+			else
+			{
+				return 8;
+			}
+		}
+		else
+		{
+			// Non Priority - non persistent mobs.
+			return 9;
+		}
+	}
+	
 	/**
 	 * Given an integer mob to kill count, it will attempt to find if there are any problem chunks and begin a culling 
 	 * @param mobCountToCull Amount of mobs we would like to kill in total - not the amount of mobs we have to kill just from this chunk based culling.
@@ -156,7 +204,7 @@ public class HardCapLaborer extends Laborer {
 		List<LivingEntity> mobs = getPluginInstance().getAllLivingNonPlayerMobs();
 		
         HashMap<Point, List<LivingEntity>> chunkEntities = new HashMap<Point, List<LivingEntity>>();
-        int totalMobCount = 0;
+        int totalCullScore = 0;
         
         for (LivingEntity mob : mobs) {
         	 if ( ! mob.isDead()) {
@@ -168,20 +216,22 @@ public class HardCapLaborer extends Laborer {
         			 chunkEntities.put(d, new ArrayList<LivingEntity>());
         		 }
         		 
-        		 chunkEntities.get(d).add(mob);
-        		 totalMobCount++;
+        		 if (mob instanceof LivingEntity) {
+	        		 chunkEntities.get(d).add(mob);
+	        		 totalCullScore += cullPriority(mob);
+        		 }
         	 }
         }
         
         Point maxCenterPoint = null;
-        int mobCountInLargestSuperChunk = -1;
+        int mobCullScoreInLargestSuperChunk = -1;
         int maxChunksInMatchSet = 0;
                 
         // For each chunk check all the chunks surrounding it.  3x3 and get mob counts.
         // Find the most populous super chunk.
         for(Point point : chunkEntities.keySet())
         {
-        	int tempMobs = 0;
+        	int cullScore = 0;
         	int tempChunkCount = 0;
         	            	
         	for(int x = -3; x <= 3; x++)
@@ -190,17 +240,21 @@ public class HardCapLaborer extends Laborer {
         		{
         			if (chunkEntities.containsKey(new Point(point.x - x, point.y - z)))
         			{
-        				tempMobs += chunkEntities.get(new Point(point.x - x, point.y - z)).size();
-        				tempChunkCount++;
+        				for (Entity e : chunkEntities.get(new Point(point.x - x, point.y - z))) {
+        					if (e instanceof LivingEntity) {
+        						cullScore += cullPriority((LivingEntity) e);
+        						tempChunkCount++;
+        					}
+        				}
         			}
         		}
         	}
         	
         	// If more mobs than our last super chunk, update it.
-        	if (tempMobs > mobCountInLargestSuperChunk) 
+        	if (cullScore > mobCullScoreInLargestSuperChunk) 
         	{
         		maxCenterPoint = point;
-        		mobCountInLargestSuperChunk = tempMobs;
+        		mobCullScoreInLargestSuperChunk = cullScore;
         		maxChunksInMatchSet = tempChunkCount;
         	}
         }
@@ -210,7 +264,7 @@ public class HardCapLaborer extends Laborer {
         
         // If the max mobs for a super chunk doesn't meet the penalty purge percent, early out.
         // Or if the 'penalty chunks' -is- all the chunks loaded.
-        if ((mobCountInLargestSuperChunk / ((1.0) * totalMobCount) <= this.getPluginInstance().getHardCapCullingPriorityStrategyPenaltyMobPercent())
+        if ((mobCullScoreInLargestSuperChunk / ((1.0) * totalCullScore) <= this.getPluginInstance().getHardCapCullingPriorityStrategyPenaltyMobPercent())
         		|| numberOfChunksToAverageOver == 0)
 		{
         	return mobCountToCull;
@@ -220,12 +274,12 @@ public class HardCapLaborer extends Laborer {
         this.getPluginInstance().getLogger().warning("Hard Cap Laborer - Found chunk that triggered a penalty purge based on mob count.  Chunk " + maxCenterPoint.x + ", " + maxCenterPoint.y + ".");
         _numberOfTimesExecutedWithPenaltyPurge++;
 
-        int averageMobsPerChunk = (int) Math.ceil(totalMobCount / (1. * numberOfChunksToAverageOver));
-        int superChunkMobCountToCull = mobCountInLargestSuperChunk - averageMobsPerChunk;
+        int averageScorePerChunk = (int) Math.ceil(totalCullScore / (1. * numberOfChunksToAverageOver));
+        int superChunkMobScoreToCull = mobCullScoreInLargestSuperChunk - averageScorePerChunk;
         
-        superChunkMobCountToCull = superChunkMobCountToCull > mobCountToCull ? mobCountToCull : superChunkMobCountToCull;
+        superChunkMobScoreToCull = superChunkMobScoreToCull > mobCountToCull ? mobCountToCull : superChunkMobScoreToCull;
         
-        if (superChunkMobCountToCull <= 0)
+        if (superChunkMobScoreToCull <= 0)
         {
         	// It met the limit but its not more than the average, so do nothing.
         	// Only in special cases where loaded chunks are extremely few.
@@ -247,7 +301,7 @@ public class HardCapLaborer extends Laborer {
     	
     	// We are only going to purge enough to bring this superchunk into a good status with our other chunks.
     	// Our unculled mobs, then, after this call would be our original mobCountToCull - the superCullCount + whats left over.
-    	return mobCountToCull - superChunkMobCountToCull + PerformCullingLogic(mobsToConsiderPurging, superChunkMobCountToCull);
+    	return mobCountToCull - superChunkMobScoreToCull + PerformCullingLogic(mobsToConsiderPurging, mobCountToCull, superChunkMobScoreToCull);
 	}
 	
 	/**
@@ -256,68 +310,36 @@ public class HardCapLaborer extends Laborer {
 	 * @param maxItemsToCull Maximum items to cull on this run.
 	 * @return The number of items remaining out of the orignal items-to-cull passed in.
 	 */
-	private int PerformCullingLogic(List<LivingEntity> cullCandidates, int maxItemsToCull)
+	private int PerformCullingLogic(List<LivingEntity> cullCandidates, int maxItemsToCull, int scoreToCull)
 	{
-		if (maxItemsToCull == 0) return maxItemsToCull;
+		if (scoreToCull == 0) return scoreToCull;
 		
 		// Step 1 - Categorize all items on our list into categories based on priority.
-		List<LivingEntity> namedMobs = new ArrayList<LivingEntity>();
-		List<LivingEntity> highValuePersistentMobs = new ArrayList<LivingEntity>();
-		List<LivingEntity> medValuePersistentMobs = new ArrayList<LivingEntity>();
-		List<LivingEntity> lowValuePersistentMobs = new ArrayList<LivingEntity>();
-		List<LivingEntity> nonPersistentMobs = new ArrayList<LivingEntity>();
+		Map<Integer, List<LivingEntity>> prioritisedMobs = new HashMap<Integer, List<LivingEntity>>();
 		
 		for(LivingEntity mob : cullCandidates)
 		{
-			// Priority 1 - Named mob.
-			if (null != mob.getCustomName() || mob.isCustomNameVisible()) 
-			{ 
-				namedMobs.add(mob); 
+			// TODO: add prioritised entities
+			int priority = cullPriority(mob);
+			if (!prioritisedMobs.containsKey(priority)) {
+				prioritisedMobs.put(priority, new ArrayList<LivingEntity>());
 			}
-			
-			// Priority 2/3/4 - Persistent mobs.
-			else if (!mob.getRemoveWhenFarAway())
-			{
-				// Priority 2 - High value persistent mobs (horses, villagers).
-				// Golems specifically not added as they can be auto'ed leading to an unfortunate culling scenario.
-				if (mob.getType() == EntityType.HORSE || mob.getType() == EntityType.VILLAGER)
-				{
-					highValuePersistentMobs.add(mob);
-				}
-				
-				//Priority 3 - tame wolves, colored sheep, tame cats.
-				else if (mob.getType() == EntityType.WOLF && ((org.bukkit.entity.Tameable)mob).isTamed())
-				{
-					medValuePersistentMobs.add(mob);
-				}
-				else if (mob.getType() == EntityType.OCELOT && ((org.bukkit.entity.Tameable)mob).isTamed())
-				{
-					medValuePersistentMobs.add(mob);
-				}
-				else if (mob.getType() == EntityType.SHEEP && ((org.bukkit.material.Colorable)mob).getColor() != DyeColor.WHITE)
-				{
-					medValuePersistentMobs.add(mob);
-				}
-				
-				// Priority 4 - low value persistent mobs.
-				else
-				{
-					lowValuePersistentMobs.add(mob);
-				}
-			}
-			else
-			{
-				// Non Priority - non persistent mobs.
-				nonPersistentMobs.add(mob);
-			}
+			prioritisedMobs.get(priority).add(mob);
 		}
 		
+		List<Integer> priorities = new ArrayList<Integer>(prioritisedMobs.keySet());
+		Collections.sort(priorities);
+		Collections.reverse(priorities);
+		
 		// Step 2 - Cull based on purge priorities.
-		maxItemsToCull = purgeToEquivalentNumbers(maxItemsToCull, getListSortedByCounts(nonPersistentMobs));
-		if (maxItemsToCull > 0) maxItemsToCull = purgeToEquivalentNumbers(maxItemsToCull, getListSortedByCounts(lowValuePersistentMobs));
-		if (maxItemsToCull > 0) maxItemsToCull = purgeToEquivalentNumbers(maxItemsToCull, getListSortedByCounts(medValuePersistentMobs));
-		if (maxItemsToCull > 0) maxItemsToCull = purgeToEquivalentNumbers(maxItemsToCull, getListSortedByCounts(highValuePersistentMobs));
-		if (maxItemsToCull > 0) maxItemsToCull = purgeToEquivalentNumbers(maxItemsToCull, getListSortedByCounts(namedMobs));
+		for (Integer priority : priorities) {
+			if (scoreToCull > 0) {
+				int remaining = purgeToEquivalentNumbers(maxItemsToCull, getListSortedByCounts(prioritisedMobs.get(priority)));
+				int culled = maxItemsToCull - remaining;
+				scoreToCull -= culled * priority;
+				maxItemsToCull = remaining;
+			}
+		}
 		
 		return maxItemsToCull;
 	}
@@ -458,7 +480,7 @@ public class HardCapLaborer extends Laborer {
 		// Consider every mob in the world except players, and start culling.
 		List<LivingEntity> mobList = getPluginInstance().getAllLivingNonPlayerMobs();
 		
-		return PerformCullingLogic(mobList, overHardMobLimit);
+		return PerformCullingLogic(mobList, mobList.size() * 10, overHardMobLimit);
 	}
 
 }
