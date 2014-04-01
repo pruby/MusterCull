@@ -209,9 +209,12 @@ public class HardCapLaborer extends Laborer {
 			
 			// Cull in a cycle, most aggressive at full moon, to encourage turnover rather than statis
 			long days = world.getFullTime() / 24000;
+			
+
+			// Fluctuate aggression from -5% to the cap at full moon to +5% to the cap at new moon
 			int phase = (int) (days % 8);
-			double cycleAmplitude = (1 + Math.cos(phase * Math.PI * 0.25)) / 2; // Fluctuate from 1 at full moon to 0 at new moon sinusoidally
-			int aggression = (int) (cycleAmplitude * 0.05 * limit);
+			double cycleAmplitude = Math.cos(phase * Math.PI * 0.25);
+			int aggression = (int) (Math.round(cycleAmplitude * 0.05 * limit));
 			
 			int toKill = hostiles.size() - (limit - aggression);
 			if (toKill >= 0) {
