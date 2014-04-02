@@ -6,6 +6,7 @@ import org.bukkit.DyeColor;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Ghast;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 
@@ -199,7 +200,9 @@ public class HardCapLaborer extends Laborer {
 	public void keepHostilesWithinSpawnLimit() {
 		for (World world : Bukkit.getServer().getWorlds()) {
 			List<LivingEntity> hostiles = new ArrayList<LivingEntity>();
+			int i = 0;
 			for (LivingEntity mob : world.getLivingEntities()) {
+				i++;
 				if (mob instanceof Monster) {
 					hostiles.add(mob);
 				}
@@ -207,17 +210,18 @@ public class HardCapLaborer extends Laborer {
 			
 			int limit = world.getMonsterSpawnLimit();
 			
-			// Cull in a cycle, most aggressive at full moon, to encourage turnover rather than statis
-			long days = world.getFullTime() / 24000;
-			
-
-			// Fluctuate aggression from -5% to the cap at full moon to +5% to the cap at new moon
-			int phase = (int) (days % 8);
-			double cycleAmplitude = Math.cos(phase * Math.PI * 0.25);
+			// Cull in a cycle, most aggressive at full moon, to encourage turnover rather than stasis
+			// Fluctuate aggression from 10% of the cap at full moon to 0 to the cap at new moon
+			double days = world.getFullTime() / 24000.0;
+			double phase = (days % 8);
+			double cycleAmplitude = 1 + Math.cos(days * Math.PI * 0.25);
 			int aggression = (int) (Math.round(cycleAmplitude * 0.05 * limit));
+
+			this.getPluginInstance().getLogger().finest("Hostile cull - World " + world.getName() + " contains " + hostiles.size() + " of an allowed hostile spawn limit of " + limit + " minus an aggression factor of " + aggression + ".");
 			
 			int toKill = hostiles.size() - (limit - aggression);
 			if (toKill >= 0) {
+				this.getPluginInstance().getLogger().info("Hostile cull - culling " + toKill + " mobs.");
 				GlobalCullCullingStrategyType cullStrat = this.getPluginInstance().getGlobalCullingStrategy();
 				
 				if (cullStrat == GlobalCullCullingStrategyType.RANDOM)
@@ -235,12 +239,11 @@ public class HardCapLaborer extends Laborer {
 				else if(cullStrat == GlobalCullCullingStrategyType.PRIORITY)
 				{
 					// this.getPluginInstance().getLogger().warning("Hard Cap Laborer - Priority based culling.");
-					toKill = HandleCullingBasedOnChunkConcentration(hostiles, toKill);
 		            toKill = HandleGlobalCulling(hostiles, toKill);
 				}
 				else
 				{
-					this.getPluginInstance().getLogger().warning("Hard Cap Laborer - Cannot determine culling strategy, no work to do.");
+					this.getPluginInstance().getLogger().warning("Hard Cap Hostile Cull - Cannot determine culling strategy, no work to do.");
 				}
 			}
 		}
@@ -528,7 +531,7 @@ public class HardCapLaborer extends Laborer {
 	private int HandleGlobalCulling(List<LivingEntity> mobList, int overHardMobLimit)
 	{
 		
-		return PerformCullingLogic(mobList, mobList.size() * 10, overHardMobLimit);
+		return PerformCullingLogic(mobList, overHardMobLimit, mobList.size() * 10);
 	}
 
 }
