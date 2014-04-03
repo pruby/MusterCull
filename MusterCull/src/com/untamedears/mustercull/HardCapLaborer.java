@@ -198,6 +198,10 @@ public class HardCapLaborer extends Laborer {
 	
 
 	public void keepHostilesWithinSpawnLimit() {
+		if (!this.getPluginInstance().getConfiguration().monsterCullToSpawnEnabled()) {
+			return;
+		}
+		
 		for (World world : Bukkit.getServer().getWorlds()) {
 			List<LivingEntity> hostiles = new ArrayList<LivingEntity>();
 			int i = 0;
@@ -214,13 +218,17 @@ public class HardCapLaborer extends Laborer {
 			// Fluctuate aggression from 10% of the cap at full moon to 0 to the cap at new moon
 			double days = world.getFullTime() / 24000.0;
 			double phase = (days % 8);
-			double cycleAmplitude = 1 + Math.cos(days * Math.PI * 0.25);
-			int aggression = (int) (Math.round(cycleAmplitude * 0.05 * limit));
+			double cycleAmplitude = (1 + Math.cos(days * Math.PI * 0.25)) / 2.0;
+			int aggression = (int) (Math.round(cycleAmplitude * getPluginInstance().getConfiguration().getMaximumMonsterCullAggression()));
 
 			this.getPluginInstance().getLogger().finest("Hostile cull - World " + world.getName() + " contains " + hostiles.size() + " of an allowed hostile spawn limit of " + limit + " minus an aggression factor of " + aggression + ".");
 			
 			int toKill = hostiles.size() - (limit - aggression);
 			if (toKill >= 0) {
+				int maxCullPerPass = this.getPluginInstance().getConfiguration().getMaximumMonsterCullPerPass();
+				if (toKill > maxCullPerPass) {
+					toKill = maxCullPerPass;
+				}
 				this.getPluginInstance().getLogger().info("Hostile cull - culling " + toKill + " mobs.");
 				GlobalCullCullingStrategyType cullStrat = this.getPluginInstance().getGlobalCullingStrategy();
 				

@@ -118,6 +118,15 @@ damage_count: 1
 # Whether to print a message when mobs are damaged. 
 damage_notify: false
 
+# Whether to enable the monster cull to each world's spawn level.
+enable_monster_cull_to_spawn: true
+
+# Maximum aggression factor for the monster cull pass.
+max_monster_cull_aggression: 5
+
+# Maximum number of monsters to kill in each monster cull pass
+max_monster_cull_per_pass: 30
+
 # The maximum number of living entities allowed to be loaded.
 mob_max_mob: 10000
 

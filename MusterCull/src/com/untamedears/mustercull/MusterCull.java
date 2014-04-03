@@ -653,5 +653,9 @@ public class MusterCull extends JavaPlugin {
 	public void forceConfigSave() {
 		this.config.save();
 	}
+	
+	public Configuration getConfiguration() {
+		return config;
+	}
 
 }

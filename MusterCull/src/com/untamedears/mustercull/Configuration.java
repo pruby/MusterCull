@@ -91,6 +91,21 @@ public class Configuration {
      */
     private long ticksBetweenHardCap = 40L;
 	
+    /**
+     * Whether to perform the monster cull pass to keep them within world spawn limits.
+     */
+    private boolean enableMonsterCullToSpawn = true;
+
+	/**
+     * The maximum number of monsters to cull in a monster cull pass.
+     */
+    private int maximumMonsterCullPerPass = 30;
+
+	/**
+     * The maximum aggression factor for the monster cull.
+     */
+    private int maximumMonsterCullAggression = 5;
+    
 	/**
 	 * Holds a reference to the Bukkit JavaPlugin for this project 
 	 */
@@ -128,6 +143,9 @@ public class Configuration {
 		this.setMobLimit(config.getInt("mob_limit"));
 		this.setMobLimitPercent(config.getInt("mob_limit_percent"));
 		this.setDamageNotify(config.getBoolean("damage_notify"));
+		this.setMaximumMonsterCullAggression(config.getInt("max_monster_cull_aggression"));
+		this.setMaximumMonsterCullPerPass(config.getInt("max_monster_cull_per_pass"));
+		this.setEnableMonsterCullToSpawn(config.getBoolean("enable_monster_cull_to_spawn"));
 		this.setMaxMob(config.getInt("mob_max_mob"));
 		this.setPlayerMultiplier(config.getInt("mob_player_multiplier"));
         this.setTicksBetweenHardCap(config.getInt("ticks_between_hard_cap"));
@@ -202,6 +220,9 @@ public class Configuration {
 		config.set("mob_limit", this.mobLimit);
 		config.set("mob_limit_percent", this.mobLimitPercent);
 		config.set("damage_notify", this.damageNotify);
+		config.set("enable_monster_cull_to_spawn", this.enableMonsterCullToSpawn);
+		config.set("max_monster_cull_aggression", this.maximumMonsterCullAggression);
+		config.set("max_monster_cull_per_pass", this.maximumMonsterCullPerPass);
 		config.set("mob_max_mob", this.maxMob);
 		config.set("mob_player_multiplier", this.playerMultiplier);
         config.set("ticks_between_hard_cap", this.ticksBetweenHardCap);
@@ -548,6 +569,42 @@ public class Configuration {
 		
 		this.damageNotify = damageNotify;
 		this.dirty = true;
+	}
+	
+    public boolean monsterCullToSpawnEnabled() {
+		return enableMonsterCullToSpawn;
+	}
+
+	public int getMaximumMonsterCullPerPass() {
+		return maximumMonsterCullPerPass;
+	}
+
+	public int getMaximumMonsterCullAggression() {
+		return maximumMonsterCullAggression;
+	}
+	
+    public void setEnableMonsterCullToSpawn(boolean enableMonsterCullToSpawn) {
+		this.enableMonsterCullToSpawn = enableMonsterCullToSpawn;
+
+		if (monsterCullToSpawnEnabled()) {
+			this.pluginInstance.getLogger().info("Monster cull: Up to " + getMaximumMonsterCullPerPass() + " mobs per run, maximum aggression is " + getMaximumMonsterCullAggression() + ".");
+		}
+	}
+
+	public void setMaximumMonsterCullPerPass(int maximumMonsterCullPerPass) {
+		this.maximumMonsterCullPerPass = maximumMonsterCullPerPass;
+
+		if (monsterCullToSpawnEnabled()) {
+			this.pluginInstance.getLogger().info("Monster cull: Up to " + getMaximumMonsterCullPerPass() + " mobs per run, maximum aggression is " + getMaximumMonsterCullAggression() + ".");
+		}
+	}
+
+	public void setMaximumMonsterCullAggression(int maximumMonsterCullAggression) {
+		this.maximumMonsterCullAggression = maximumMonsterCullAggression;
+
+		if (monsterCullToSpawnEnabled()) {
+			this.pluginInstance.getLogger().info("Monster cull: Up to " + getMaximumMonsterCullPerPass() + " mobs per run, maximum aggression is " + getMaximumMonsterCullAggression() + ".");
+		}
 	}
 		
 }
