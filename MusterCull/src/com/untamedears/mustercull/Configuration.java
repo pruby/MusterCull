@@ -104,6 +104,11 @@ public class Configuration {
 	/**
      * The maximum aggression factor for the monster cull.
      */
+    private int minimumMonsterCullAggression = 0;
+
+	/**
+     * The maximum aggression factor for the monster cull.
+     */
     private int maximumMonsterCullAggression = 5;
     
 	/**
@@ -144,6 +149,7 @@ public class Configuration {
 		this.setMobLimitPercent(config.getInt("mob_limit_percent"));
 		this.setDamageNotify(config.getBoolean("damage_notify"));
 		this.setMaximumMonsterCullAggression(config.getInt("max_monster_cull_aggression"));
+		this.setMinimumMonsterCullAggression(config.getInt("min_monster_cull_aggression"));
 		this.setMaximumMonsterCullPerPass(config.getInt("max_monster_cull_per_pass"));
 		this.setEnableMonsterCullToSpawn(config.getBoolean("enable_monster_cull_to_spawn"));
 		this.setMaxMob(config.getInt("mob_max_mob"));
@@ -222,6 +228,7 @@ public class Configuration {
 		config.set("damage_notify", this.damageNotify);
 		config.set("enable_monster_cull_to_spawn", this.enableMonsterCullToSpawn);
 		config.set("max_monster_cull_aggression", this.maximumMonsterCullAggression);
+		config.set("min_monster_cull_aggression", this.minimumMonsterCullAggression);
 		config.set("max_monster_cull_per_pass", this.maximumMonsterCullPerPass);
 		config.set("mob_max_mob", this.maxMob);
 		config.set("mob_player_multiplier", this.playerMultiplier);
@@ -582,12 +589,16 @@ public class Configuration {
 	public int getMaximumMonsterCullAggression() {
 		return maximumMonsterCullAggression;
 	}
+
+	public int getMinimumMonsterCullAggression() {
+		return minimumMonsterCullAggression;
+	}
 	
     public void setEnableMonsterCullToSpawn(boolean enableMonsterCullToSpawn) {
 		this.enableMonsterCullToSpawn = enableMonsterCullToSpawn;
 
 		if (monsterCullToSpawnEnabled()) {
-			this.pluginInstance.getLogger().info("Monster cull: Up to " + getMaximumMonsterCullPerPass() + " mobs per run, maximum aggression is " + getMaximumMonsterCullAggression() + ".");
+			this.pluginInstance.getLogger().info("Monster cull: Up to " + getMaximumMonsterCullPerPass() + " mobs per run, aggression is " + getMinimumMonsterCullAggression() + " to " + getMaximumMonsterCullAggression() + ".");
 		}
 	}
 
@@ -595,7 +606,7 @@ public class Configuration {
 		this.maximumMonsterCullPerPass = maximumMonsterCullPerPass;
 
 		if (monsterCullToSpawnEnabled()) {
-			this.pluginInstance.getLogger().info("Monster cull: Up to " + getMaximumMonsterCullPerPass() + " mobs per run, maximum aggression is " + getMaximumMonsterCullAggression() + ".");
+			this.pluginInstance.getLogger().info("Monster cull: Up to " + getMaximumMonsterCullPerPass() + " mobs per run, aggression is " + getMinimumMonsterCullAggression() + " to " + getMaximumMonsterCullAggression() + ".");
 		}
 	}
 
@@ -603,7 +614,15 @@ public class Configuration {
 		this.maximumMonsterCullAggression = maximumMonsterCullAggression;
 
 		if (monsterCullToSpawnEnabled()) {
-			this.pluginInstance.getLogger().info("Monster cull: Up to " + getMaximumMonsterCullPerPass() + " mobs per run, maximum aggression is " + getMaximumMonsterCullAggression() + ".");
+			this.pluginInstance.getLogger().info("Monster cull: Up to " + getMaximumMonsterCullPerPass() + " mobs per run, aggression is " + getMinimumMonsterCullAggression() + " to " + getMaximumMonsterCullAggression() + ".");
+		}
+	}
+
+	public void setMinimumMonsterCullAggression(int minimumMonsterCullAggression) {
+		this.minimumMonsterCullAggression = minimumMonsterCullAggression;
+
+		if (monsterCullToSpawnEnabled()) {
+			this.pluginInstance.getLogger().info("Monster cull: Up to " + getMaximumMonsterCullPerPass() + " mobs per run, aggression is " + getMinimumMonsterCullAggression() + " to " + getMaximumMonsterCullAggression() + ".");
 		}
 	}
 		

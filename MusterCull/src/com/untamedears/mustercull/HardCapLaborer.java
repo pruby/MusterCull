@@ -219,7 +219,9 @@ public class HardCapLaborer extends Laborer {
 			double days = world.getFullTime() / 24000.0;
 			double phase = (days % 8);
 			double cycleAmplitude = (1 + Math.cos(days * Math.PI * 0.25)) / 2.0;
-			int aggression = (int) (Math.round(cycleAmplitude * getPluginInstance().getConfiguration().getMaximumMonsterCullAggression()));
+			int maxAggression = getPluginInstance().getConfiguration().getMaximumMonsterCullAggression();
+			int minAggression = getPluginInstance().getConfiguration().getMinimumMonsterCullAggression();
+			int aggression = minAggression + ((int) (Math.round(cycleAmplitude * (maxAggression - minAggression))));
 
 			this.getPluginInstance().getLogger().finest("Hostile cull - World " + world.getName() + " contains " + hostiles.size() + " of an allowed hostile spawn limit of " + limit + " minus an aggression factor of " + aggression + ".");
 			
