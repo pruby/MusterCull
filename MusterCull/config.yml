@@ -131,10 +131,10 @@ damage_notify: false
 enable_monster_cull_to_spawn: true
 
 # Maximum aggression factor for the monster cull pass.
-min_monster_cull_aggression: -20
+min_monster_cull_aggression: -60
 
 # Maximum aggression factor for the monster cull pass.
-max_monster_cull_aggression: 0
+max_monster_cull_aggression: -10
 
 # Maximum number of monsters to kill in each monster cull pass
 max_monster_cull_per_pass: 10

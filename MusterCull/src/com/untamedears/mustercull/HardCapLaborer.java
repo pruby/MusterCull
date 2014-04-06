@@ -9,6 +9,9 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Ghast;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
+import org.bukkit.entity.Skeleton;
+import org.bukkit.entity.Skeleton.SkeletonType;
+import org.bukkit.entity.Wither;
 
 import java.awt.Point;
 import java.util.ArrayList;
@@ -207,8 +210,16 @@ public class HardCapLaborer extends Laborer {
 			int i = 0;
 			for (LivingEntity mob : world.getLivingEntities()) {
 				i++;
+				// Monster is hostiles except Ghast, Slime, Magma Cube (which are special case hostiles)
 				if (mob instanceof Monster) {
-					hostiles.add(mob);
+					// Wither skeletons count as skeletons so are culled fast - exempt them
+					if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType().equals(SkeletonType.WITHER)) {
+						// Do nothing
+					} else if (mob instanceof Wither) {
+						// Withers are rare constructs - exempt them
+					} else {
+						hostiles.add(mob);
+					}
 				}
 			}
 			
@@ -511,12 +522,13 @@ public class HardCapLaborer extends Laborer {
 		HashMap<EntityType, List<LivingEntity>> equivalentPurgeList = new HashMap<EntityType, List<LivingEntity>>();
 		for(LivingEntity mob : mobList)
 		{
-			if(!equivalentPurgeList.containsKey(mob.getType()))
+			EntityType type = mob.getType();
+			if(!equivalentPurgeList.containsKey(type))
 			{
-				equivalentPurgeList.put(mob.getType(), new ArrayList<LivingEntity>());				
+				equivalentPurgeList.put(type, new ArrayList<LivingEntity>());				
 			}
 			
-			equivalentPurgeList.get(mob.getType()).add(mob);
+			equivalentPurgeList.get(type).add(mob);
 		}
 		
 		// Sort these entity-types by the ones with the most first.
