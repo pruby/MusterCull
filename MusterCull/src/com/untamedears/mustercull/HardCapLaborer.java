@@ -7,6 +7,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Ghast;
+import org.bukkit.entity.IronGolem;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Skeleton;
@@ -165,10 +166,12 @@ public class HardCapLaborer extends Laborer {
 		// Priority 2/3/4 - Persistent mobs.
 		else if (!mob.getRemoveWhenFarAway())
 		{
-			// Priority 2 - High value persistent mobs (horses, villagers).
-			// Golems specifically not added as they can be auto'ed leading to an unfortunate culling scenario.
+			// Priority 2 - High value persistent mobs (horses, villagers, player created iron golems).
 			if (mob.getType() == EntityType.HORSE || mob.getType() == EntityType.VILLAGER)
 			{
+				return 6;
+			}
+			else if (mob.getType() == EntityType.IRON_GOLEM && mob instanceof IronGolem && ((IronGolem) mob).isPlayerCreated()) {
 				return 6;
 			}
 			
