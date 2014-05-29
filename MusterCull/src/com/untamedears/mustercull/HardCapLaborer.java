@@ -238,16 +238,18 @@ public class HardCapLaborer extends Laborer {
 			int maxAggression = getPluginInstance().getConfiguration().getMaximumMonsterCullAggression();
 			int minAggression = getPluginInstance().getConfiguration().getMinimumMonsterCullAggression();
 			int aggression = minAggression + ((int) (Math.round(cycleAmplitude * (maxAggression - minAggression))));
-
-			this.getPluginInstance().getLogger().finest("Hostile cull - World " + world.getName() + " contains " + hostiles.size() + " of an allowed hostile spawn limit of " + limit + " minus an aggression factor of " + aggression + ".");
 			
-			int toKill = hostiles.size() - (limit * getSpawnChunkCount(world) - aggression);
-			if (toKill >= 0) {
+			int spawnChunkCount = getSpawnChunkCount(world);
+
+			this.getPluginInstance().getLogger().info("Hostile cull - World " + world.getName() + " contains " + hostiles.size() + " of an allowed hostile spawn limit of " + (limit * spawnChunkCount) + " minus an aggression factor of " + aggression + ".");
+			
+			int toKill = hostiles.size() - (limit * spawnChunkCount - aggression);
+			if (toKill >= 0 && hostiles.size() > 0) {
 				int maxCullPerPass = this.getPluginInstance().getConfiguration().getMaximumMonsterCullPerPass();
 				if (toKill > maxCullPerPass) {
 					toKill = maxCullPerPass;
 				}
-				this.getPluginInstance().getLogger().info("Hostile cull - culling " + toKill + " mobs.");
+				this.getPluginInstance().getLogger().info("Hostile cull in world " + world.getName() + " - culling " + toKill + " mobs.");
 				GlobalCullCullingStrategyType cullStrat = this.getPluginInstance().getGlobalCullingStrategy();
 				
 				if (cullStrat == GlobalCullCullingStrategyType.RANDOM)
