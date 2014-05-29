@@ -10,6 +10,7 @@ import org.bukkit.entity.Ghast;
 import org.bukkit.entity.IronGolem;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.Skeleton;
 import org.bukkit.entity.Skeleton.SkeletonType;
 import org.bukkit.entity.Wither;
@@ -19,10 +20,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * This class performs damage to mobs using the DAMAGE CullType.
@@ -201,7 +204,6 @@ public class HardCapLaborer extends Laborer {
 			return 9;
 		}
 	}
-	
 
 	public void keepHostilesWithinSpawnLimit() {
 		if (!this.getPluginInstance().getConfiguration().monsterCullToSpawnEnabled()) {
@@ -239,7 +241,7 @@ public class HardCapLaborer extends Laborer {
 
 			this.getPluginInstance().getLogger().finest("Hostile cull - World " + world.getName() + " contains " + hostiles.size() + " of an allowed hostile spawn limit of " + limit + " minus an aggression factor of " + aggression + ".");
 			
-			int toKill = hostiles.size() - (limit - aggression);
+			int toKill = hostiles.size() - (limit * getSpawnChunkCount(world) - aggression);
 			if (toKill >= 0) {
 				int maxCullPerPass = this.getPluginInstance().getConfiguration().getMaximumMonsterCullPerPass();
 				if (toKill > maxCullPerPass) {
@@ -273,6 +275,30 @@ public class HardCapLaborer extends Laborer {
 		}
 	}
 	
+	private int getSpawnChunkCount(World world) {
+		Set<Chunk> chunks = new HashSet<Chunk>();
+		for (Player player : world.getPlayers()) {
+			int chunkX = player.getLocation().getBlockX() / 16;
+			int chunkZ = player.getLocation().getBlockZ() / 16;
+			
+			int spawnRadius = Bukkit.getServer().getSpawnRadius();
+			int viewLimit = Bukkit.getServer().getViewDistance();
+			
+			int dist = 8;
+			if (spawnRadius < dist) dist = spawnRadius;
+			if (viewLimit < dist) dist = viewLimit;
+
+			for (int dx = -dist; dx <= dist; ++dx) {
+				for (int dz = -dist; dz <= dist; ++dz) {
+					if (world.isChunkLoaded(chunkX + dx, chunkZ + dz)) {
+						chunks.add(world.getChunkAt(chunkX + dx, chunkZ + dz));
+					}
+				}	
+			}
+		}
+		return chunks.size();
+	}
+
 	/**
 	 * Given an integer mob to kill count, it will attempt to find if there are any problem chunks and begin a culling 
 	 * @param mobCountToCull Amount of mobs we would like to kill in total - not the amount of mobs we have to kill just from this chunk based culling.
