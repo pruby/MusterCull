@@ -211,16 +211,22 @@ public class HardCapLaborer extends Laborer {
 		}
 		
 		for (World world : Bukkit.getServer().getWorlds()) {
+			// Find the spawn chunks around players in the world
+			Set<Chunk> mobSpawnChunks = getMobSpawnChunks(world);
+			int spawnChunkCount = mobSpawnChunks.size();
+			
+			// Find hostiles in this world
 			List<LivingEntity> hostiles = new ArrayList<LivingEntity>();
 			int i = 0;
-			for (LivingEntity mob : world.getLivingEntities()) {
+			for (LivingEntity entity : world.getLivingEntities()) {
 				i++;
 				// Monster is hostiles except Ghast, Slime, Magma Cube (which are special case hostiles)
-				if (mob instanceof Monster) {
+				if (entity instanceof Monster) {
+					Monster mob = (Monster) entity;
 					// Wither skeletons count as skeletons so are culled fast - exempt them
 					if (mob instanceof Skeleton && ((Skeleton) mob).getSkeletonType().equals(SkeletonType.WITHER)) {
 						// Do nothing
-					} else if (mob instanceof Wither) {
+					} else if (entity instanceof Wither) {
 						// Withers are rare constructs - exempt them
 					} else {
 						hostiles.add(mob);
@@ -228,7 +234,7 @@ public class HardCapLaborer extends Laborer {
 				}
 			}
 			
-			int limit = world.getMonsterSpawnLimit();
+			int naturalLimit = world.getMonsterSpawnLimit() * spawnChunkCount / 256;
 			
 			// Cull in a cycle, most aggressive at full moon, to encourage turnover rather than stasis
 			// Fluctuate aggression from 10% of the cap at full moon to 0 to the cap at new moon
@@ -238,12 +244,10 @@ public class HardCapLaborer extends Laborer {
 			int maxAggression = getPluginInstance().getConfiguration().getMaximumMonsterCullAggression();
 			int minAggression = getPluginInstance().getConfiguration().getMinimumMonsterCullAggression();
 			int aggression = minAggression + ((int) (Math.round(cycleAmplitude * (maxAggression - minAggression))));
-			
-			int spawnChunkCount = getSpawnChunkCount(world);
 
-			this.getPluginInstance().getLogger().info("Hostile cull - World " + world.getName() + " contains " + hostiles.size() + " of an allowed hostile spawn limit of " + (limit * spawnChunkCount) + " minus an aggression factor of " + aggression + ".");
+			this.getPluginInstance().getLogger().info("Hostile cull - World " + world.getName() + " contains " + hostiles.size() + " of an allowed hostile spawn limit of " + naturalLimit + " minus an aggression factor of " + aggression + ".");
 			
-			int toKill = hostiles.size() - (limit * spawnChunkCount - aggression);
+			int toKill = hostiles.size() - (naturalLimit - aggression);
 			if (toKill >= 0 && hostiles.size() > 0) {
 				int maxCullPerPass = this.getPluginInstance().getConfiguration().getMaximumMonsterCullPerPass();
 				if (toKill > maxCullPerPass) {
@@ -277,7 +281,7 @@ public class HardCapLaborer extends Laborer {
 		}
 	}
 	
-	private int getSpawnChunkCount(World world) {
+	private Set<Chunk> getMobSpawnChunks(World world) {
 		Set<Chunk> chunks = new HashSet<Chunk>();
 		for (Player player : world.getPlayers()) {
 			int chunkX = player.getLocation().getBlockX() / 16;
@@ -298,7 +302,7 @@ public class HardCapLaborer extends Laborer {
 				}	
 			}
 		}
-		return chunks.size();
+		return chunks;
 	}
 
 	/**
