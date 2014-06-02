@@ -134,10 +134,10 @@ enable_monster_cull_to_spawn: true
 min_monster_cull_aggression: -30
 
 # Maximum aggression factor for the monster cull pass.
-max_monster_cull_aggression: 30
+max_monster_cull_aggression: 10
 
 # Maximum number of monsters to kill in each monster cull pass
-max_monster_cull_per_pass: 30
+max_monster_cull_per_pass: 10
 
 # The maximum number of living entities allowed to be loaded.
 mob_max_mob: 4000
