@@ -243,14 +243,18 @@ public class HardCapLaborer extends Laborer {
 			double cycleAmplitude = (1 + Math.cos(days * Math.PI * 0.25)) / 2.0;
 			int maxAggression = getPluginInstance().getConfiguration().getMaximumMonsterCullAggression();
 			int minAggression = getPluginInstance().getConfiguration().getMinimumMonsterCullAggression();
-			int aggression = minAggression + ((int) (Math.round(cycleAmplitude * (maxAggression - minAggression))));
-
-			this.getPluginInstance().getLogger().info("Hostile cull - World " + world.getName() + " contains " + hostiles.size() + " of an allowed hostile spawn limit of " + naturalLimit + " minus an aggression factor of " + aggression + ".");
 			
-			int toKill = hostiles.size() - (naturalLimit - aggression);
+			int aggression = minAggression + ((int) (Math.round(cycleAmplitude * (maxAggression - minAggression))));
+			int percentageLimit = 100 - aggression;
+
+			this.getPluginInstance().getLogger().info("Hostile cull - World " + world.getName() + " contains " + hostiles.size() + " of an allowed " + percentageLimit + "% of a hostile spawn limit of " + naturalLimit + ".");
+			
+			int toKill = hostiles.size() - (naturalLimit * percentageLimit / 100);
+			
 			if (toKill >= 0 && hostiles.size() > 0) {
 				int maxCullPerPass = this.getPluginInstance().getConfiguration().getMaximumMonsterCullPerPass();
-				if (toKill > maxCullPerPass) {
+				maxCullPerPass = maxCullPerPass * hostiles.size() / 100;
+				if (toKill  > maxCullPerPass) {
 					toKill = maxCullPerPass;
 				}
 				this.getPluginInstance().getLogger().info("Hostile cull in world " + world.getName() + " - culling " + toKill + " mobs.");
