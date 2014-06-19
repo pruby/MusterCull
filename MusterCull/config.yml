@@ -130,14 +130,14 @@ damage_notify: false
 # Whether to enable the monster cull to each world's spawn level.
 enable_monster_cull_to_spawn: true
 
-# Maximum aggression factor for the monster cull pass.
-min_monster_cull_aggression: -30
+# Minimum % aggression factor for the monster cull pass.
+min_monster_cull_aggression: -20
 
-# Maximum aggression factor for the monster cull pass.
+# Maximum % aggression factor for the monster cull pass.
 max_monster_cull_aggression: 10
 
-# Maximum number of monsters to kill in each monster cull pass
-max_monster_cull_per_pass: 10
+# Maximum % of monsters to kill in each monster cull pass
+max_monster_cull_per_pass: 5
 
 # The maximum number of living entities allowed to be loaded.
 mob_max_mob: 4000
