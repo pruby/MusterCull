@@ -1,0 +1,49 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.untamedears.mustercull</groupId>
+  <artifactId>MusterCull</artifactId>
+  <packaging>jar</packaging>
+  <version>1.4.1-SNAPSHOT</version>
+  <name>MusterCull</name>
+  <url>https://github.com/ttk2/MusterCull</url>
+  
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>2.3.2</version>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+            <compilerArgument></compilerArgument>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+        
+    <sourceDirectory>${basedir}/MusterCull/src</sourceDirectory>
+    
+    <resources>
+      <resource>
+        <directory>${basedir}/MusterCull</directory>
+        <includes>
+          <include>*.yml</include>
+        </includes>
+      </resource>
+    </resources>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.bukkit</groupId>
+      <artifactId>craftbukkit</artifactId>
+      <version>1.7.9</version>
+      <scope>system</scope>
+      <systemPath>${project.lib}/craftbukkit.jar</systemPath>
+    </dependency>
+  </dependencies>
+</project>
