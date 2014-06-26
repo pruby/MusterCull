@@ -41,9 +41,16 @@
     <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>craftbukkit</artifactId>
-      <version>1.7.9</version>
-      <scope>system</scope>
-      <systemPath>${project.lib}/craftbukkit.jar</systemPath>
+      <version>1.7.2</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
+  
+  <repositories>
+    <repository>
+      <id>lib</id>
+      <name>lib</name>
+      <url>${project.baseUri}lib</url>
+    </repository>
+  </repositories>
 </project>
