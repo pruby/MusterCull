@@ -58,15 +58,15 @@ limits:
 - type: PIG
   culling: DAMAGE
   limit: 30
-  range: 8
+  range: 30
 - type: SHEEP
   culling: DAMAGE
   limit: 30
-  range: 8
+  range: 30
 - type: COW
   culling: DAMAGE
   limit: 30
-  range: 8
+  range: 30
 - type: CHICKEN
   culling: DAMAGE
   limit: 50
