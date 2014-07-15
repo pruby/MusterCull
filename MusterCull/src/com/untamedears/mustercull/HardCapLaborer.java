@@ -170,7 +170,7 @@ public class HardCapLaborer extends Laborer {
 		else if (!mob.getRemoveWhenFarAway())
 		{
 			// Priority 2 - High value persistent mobs (horses, villagers, player created iron golems).
-			if (mob.getType() == EntityType.HORSE || mob.getType() == EntityType.VILLAGER)
+			if (mob.getType() == EntityType.HORSE)
 			{
 				return 6;
 			}
