@@ -176,4 +176,4 @@ hard_cap_culling_strategy: PRIORITY
 #   by a culling in order to bring them down to the average mob-per-chunk value.
 #
 # NOTE:  a value of 100 = 100%, a value of 15 = 15%, etc.
-hard_cap_culling_priority_strategy_penalty_mob_percent: 15
+hard_cap_culling_priority_strategy_penalty_mob_percent: 10
