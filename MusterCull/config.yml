@@ -57,19 +57,19 @@ limits:
   range: 30
 - type: PIG
   culling: DAMAGE
-  limit: 40
+  limit: 30
   range: 5
 - type: SHEEP
   culling: DAMAGE
-  limit: 40
+  limit: 30
   range: 5
 - type: COW
   culling: DAMAGE
-  limit: 40
+  limit: 30
   range: 5
 - type: CHICKEN
   culling: DAMAGE
-  limit: 60
+  limit: 50
   range: 5
 - type: SQUID
   culling: SPAWN
@@ -113,13 +113,13 @@ damage: 20
 damage_chance: 100
 
 # The number of entities to damage each round of the laborer.
-damage_count: 20
+damage_count: 30
 
 # The number of ticks between invocations of the damage method for mobs.
-ticks_between_damage: 20
+ticks_between_damage: 10
 
 # Number of entities before the damage laborer cares to run.
-mob_limit: 50
+mob_limit: 10
 
 # Percent of total entities a mob must be to be queued for damage.
 mob_limit_percent: 15
@@ -137,7 +137,7 @@ min_monster_cull_aggression: -20
 max_monster_cull_aggression: 10
 
 # Maximum % of monsters to kill in each monster cull pass
-max_monster_cull_per_pass: 10
+max_monster_cull_per_pass: 5
 
 # The maximum number of living entities allowed to be loaded.
 mob_max_mob: 4000
