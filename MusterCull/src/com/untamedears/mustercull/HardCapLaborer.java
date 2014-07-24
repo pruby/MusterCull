@@ -179,10 +179,10 @@ public class HardCapLaborer extends Laborer {
 			}
 			
 			//Priority 3 - tame wolves, colored sheep, tame cats.
-			else if (mob.getType() == EntityType.WOLF && ((org.bukkit.entity.Tameable)mob).isTamed())
-			{
-				return 7;
-			}
+			//else if (mob.getType() == EntityType.WOLF && ((org.bukkit.entity.Tameable)mob).isTamed())
+			//{
+			//	return 7;
+			//}
 			else if (mob.getType() == EntityType.OCELOT && ((org.bukkit.entity.Tameable)mob).isTamed())
 			{
 				return 7;
