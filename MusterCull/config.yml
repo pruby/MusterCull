@@ -103,6 +103,10 @@ limits:
   limit: 50
   culling: SPAWN
   range: 250
+- type: PIGZOMBIE
+  culling: DAMAGE
+  limit: 20
+  range: 5
 
 # The amount of damage to apply to mobs which are considered crowded under the
 # DAMAGE method of culling.
